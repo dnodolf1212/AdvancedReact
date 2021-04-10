@@ -1,7 +1,7 @@
 import gql from "graphql-tag"
 import { useQuery } from "@apollo/client"
 import styled from 'styled-components'
-import { template } from "@babel/core"
+
 
 const ALL_PRODUCTS_QUERY = gql`
  query ALL_PRODUCTS_QUERY {
