@@ -1,7 +1,7 @@
 import gql from "graphql-tag"
 import { useQuery } from "@apollo/client"
 import styled from 'styled-components'
-
+import Product from '../components/Product'
 
 const ALL_PRODUCTS_QUERY = gql`
  query ALL_PRODUCTS_QUERY {
@@ -30,11 +30,13 @@ const ProductsListStyles = styled.div`
    const { data, error, loading } = useQuery(ALL_PRODUCTS_QUERY);
    console.log(data, error, loading);
    if (loading) return <p>Hold on one moment...</p>;
- if (error) return <p>Error: {error.message}</p>
+   if (error) return <p>Error: {error.message}</p>
    return (
      <div>
        <ProductsListStyles>
-         {data.allProducts.map(product => <p key={product.id}>{product.name}</p>)}
+         {data.allProducts.map((product) => (
+           <Product key={product.id} product={product} />
+         ))}
        </ProductsListStyles>
      </div>
    )
