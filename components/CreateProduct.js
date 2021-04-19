@@ -4,6 +4,7 @@ import gql from 'graphql-tag';
 import useForm from '../lib/useForm';
 import Form from './styles/Form';
 import { ALL_PRODUCTS_QUERY } from './Products';
+import Router from 'next/router';
 
 const CREATE_PRODUCT_MUTATION = gql`
   mutation CREATE_PRODUCT_MUTATION(
@@ -45,16 +46,18 @@ export default function CreateProduct() {
       variables: inputs,
       refetchQueries: [{ query: ALL_PRODUCTS_QUERY}],
     });
-    console.log(createProduct)
 
   return (
 
     <Form onSubmit={async (e) => {
       e.preventDefault();
-      console.log(inputs);
       // submit input fields to the backend
-      await createProduct(); //data can be captured by setting this to "const data = await...""
+      const res = await createProduct(); //data can be captured by setting this to "const data = await...""
       clearForm();
+      //Go to that products page
+      Router.push({
+        pathname: `/product/${res.data.createProduct.id}`
+      })
     }}>
 
       <DisplayError error={error}/>
