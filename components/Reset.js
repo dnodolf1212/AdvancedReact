@@ -5,12 +5,16 @@ import { CURRENT_USER_QUERY } from './User';
 import { useMutation } from '@apollo/client';
 import Error from './ErrorMessage';
 
-const REQUEST_RESET_MUTATION = gql`
-  mutation REQUEST_RESET_MUTATION(
+const RESET_MUTATION = gql`
+  mutation RESET_MUTATION(
     $email: String!
+    $password: String!
+    $token: String!
     ) {
-    sendUserPasswordResetLink(
+    redeemUserPasswordResetToken(
       email: $email 
+      token: $token 
+      password: $password
       ) {
       code 
       message
@@ -18,21 +22,25 @@ const REQUEST_RESET_MUTATION = gql`
   }
 `;
 
-export default function RequestReset () {
+export default function Reset({ token }) {
 
   const { inputs, handleChange, resetForm } = useForm({
-    email: ''
-  })
-
-  const [signup, { data, loading, error }] = useMutation(REQUEST_RESET_MUTATION, {
-    variables: inputs, 
-    // refetch the currently logged in user
-    //refetchQueries: [{ query: CURRENT_USER_QUERY }]
+    email: '',
+    password: '',
+    token,
   });
+
+  const [reset, { data, loading, error }] = useMutation(RESET_MUTATION, {
+    variables: inputs, 
+    
+  });
+  const successfulError = data?.redeemUserPasswordResetToken?.code ? 
+  data?.redeemUserPasswordResetToken : undefined;
+  console.log(error);
   async function handleSubmit(e){
     e.preventDefault();
     console.log(inputs);
-    const res = await signup().catch(console.error);
+    const res = await reset().catch(console.error);
     console.log(res)
     console.log({ data, loading, error })
     resetForm();
@@ -41,17 +49,25 @@ export default function RequestReset () {
 
   return (
   <Form method="POST" onSubmit={handleSubmit}>
-    <h2>Request a Password Reset</h2>
+    <h2>Reset Your Password!</h2>
 
-    <Error error={error} />
+    <Error error={error || successfulError} />
     <fieldset>
-  {data?.sendUserPasswordResetLink === null && <p>Success! Check your email for a reset link.</p>}
+  {data?.redeemUserPasswordResetToken === null && <p>Success! You can now sign in.</p>}
       
       <label htmlFor="email">
         Email 
         <input type="email" name="email" placeholder="Your Email Address"
         autoComplete="email"
         value={inputs.email} 
+        onChange={handleChange} 
+        />
+      </label>
+      <label htmlFor="password">
+        Password 
+        <input type="password" name="password" placeholder="Your Password"
+        autoComplete="password"
+        value={inputs.password} 
         onChange={handleChange} 
         />
       </label>
