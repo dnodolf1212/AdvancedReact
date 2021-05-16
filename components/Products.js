@@ -34,7 +34,7 @@ const ProductsListStyles = styled.div`
        first: perPage
      }
    });
-   console.log(data, error, loading);
+   
    if (loading) return <p>Hold on one moment...</p>;
    if (error) return <p>Error: {error.message}</p>
    return (
