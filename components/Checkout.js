@@ -8,6 +8,8 @@ import {
 } from '@stripe/react-stripe-js';
 import { useState } from 'react';
 import nProgress from 'nprogress';
+import gql from 'graphql-tag';
+import { useMutation } from '@apollo/client';
 import SickButton from './styles/SickButton';
 
 const CheckoutFormStyles = styled.form`
@@ -20,6 +22,19 @@ const CheckoutFormStyles = styled.form`
 `;
 
 // eslint-disable-next-line no-undef
+const CREATE_ORDER_MUTATION = gql`
+  mutation CREATE_ORDER_MUTATION($token: String!) {
+    checkout(token: $token) {
+      id
+      charge
+      total
+      items {
+        id
+        name
+      }
+    }
+  }
+`;
 const stripeLib = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY);
 
 function CheckoutForm() {
@@ -27,7 +42,9 @@ function CheckoutForm() {
   const [loading, setLoading] = useState();
   const stripe = useStripe();
   const elements = useElements();
-
+  const [checkout, { error: graphQLError }] = useMutation(
+    CREATE_ORDER_MUTATION
+  );
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
@@ -38,15 +55,25 @@ function CheckoutForm() {
       type: 'card',
       card: elements.getElement(CardElement),
     });
-    console.log(paymentMethod)
+    console.log(paymentMethod);
     // create payment method via Stripe, get token
     if (error) {
       setError(error);
+      nProgress.done();
+      return;
     }
     // handle errors from Stripe
     // send the token from step 3 to keystone server via custom mutation
+    const order = await checkout({
+      variables: {
+        token: paymentMethod.id,
+      },
+    });
+    console.log('Finished with the order!!');
+    console.log(order);
     // change page to view order
     // close cart
+
     // turn loader off
     setLoading(false);
     nProgress.done();
@@ -55,6 +82,7 @@ function CheckoutForm() {
   return (
     <CheckoutFormStyles onSubmit={handleSubmit}>
       {error && <p>{error.message}</p>}
+      {graphQLError && <p>{graphQLError.message}</p>}
       <p>check it out</p>
       <CardElement />
       <SickButton>Lets GOOOO!</SickButton>
